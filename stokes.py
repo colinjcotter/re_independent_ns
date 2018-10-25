@@ -8,6 +8,7 @@ h = 1/n # "length" of each side
 viscosity = 1 #viscosity
 c = 10 # dark magic
 f = Constant((1,0))
+gamma = Constant((100.0))
 
 # Load mesh
 mesh = UnitSquareMesh(n, n)
@@ -70,20 +71,36 @@ viscous_term = (
     + viscous_ext # assembles everything
     )
 
-a = viscous_term + q * div(u) * dx - p * div(v) * dx
+graddiv_term = gamma*div(v)*div(u)*dx
+
+a = viscosity*viscous_term + graddiv_term + q * div(u) * dx - p * div(v) * dx
 
 #Solving problem #
 
-#importing petsc
-from firedrake.petsc import PETSc
+parameters = {
+    "ksp_type": "gmres",
+    "ksp_rtol": 1e-8,
+    "pc_type": "fieldsplit",
+    "pc_fieldsplit_type": "schur",
+    "pc_fieldsplit_schur_fact_type": "full",
+    "fieldsplit_0_ksp_type": "preonly",
+    "fieldsplit_0_pc_type": "lu",
+    "fieldsplit_1_ksp_type": "preonly",
+    "fieldsplit_1_pc_type": "lu"
+}
 
-#try unless have PETSC error
-solve(a == L, up, bcs=(bc1,bc2), nullspace=nullspace,
-      solver_parameters={
-          "ksp_monitor": True,
-          "ksp_type": "gmres",
-          "mat_type": "aij",
-          "pc_type": "ilu"})
+pmass = q*p*dx
+
+ap = viscous_term + graddiv_term  + (viscosity + gamma)*pmass
+
+stokesproblem = LinearVariationalProblem(a,L, aP=aP,
+                                         bcs=(bc1,bc2),
+                                         nullspace=nullspace)
+
+stokessolver = LinearVariationalProblem(stokesproblem, up,
+                                        solver_parameters=parameters)
+
+stokessolver.solve()
 
 u, p = up.split()
 u.rename("Velocity")
