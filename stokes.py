@@ -92,7 +92,7 @@ parameters = {
 
 pmass = q*p*dx
 
-ap = viscous_term + graddiv_term  + (viscosity + gamma)*pmass
+aP = viscous_term + graddiv_term  + (viscosity + gamma)*pmass
 
 stokesproblem = LinearVariationalProblem(a,L, aP=aP,
                                          bcs=(bc1,bc2),
