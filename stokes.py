@@ -95,11 +95,11 @@ pmass = q*p*dx
 aP = viscous_term + graddiv_term  + (viscosity + gamma)*pmass
 
 stokesproblem = LinearVariationalProblem(a,L, aP=aP,
-                                         bcs=(bc1,bc2),
-                                         nullspace=nullspace)
+                                         bcs=(bc1,bc2))
 
-stokessolver = LinearVariationalProblem(stokesproblem, up,
-                                        solver_parameters=parameters)
+stokessolver = LinearVariationalSolver(stokesproblem, up,
+                                       nullspace=nullspace,
+                                       solver_parameters=parameters)
 
 stokessolver.solve()
 
