@@ -79,6 +79,7 @@ a = viscosity*viscous_term + graddiv_term + q * div(u) * dx - p * div(v) * dx
 
 parameters = {
     "ksp_type": "gmres",
+    "ksp_monitor": True,
     "ksp_rtol": 1e-8,
     "pc_type": "fieldsplit",
     "pc_fieldsplit_type": "schur",
@@ -94,10 +95,10 @@ pmass = q*p*dx
 
 aP = viscous_term + graddiv_term  + (viscosity + gamma)*pmass
 
-stokesproblem = LinearVariationalProblem(a,L, aP=aP,
+stokesproblem = LinearVariationalProblem(a,L, up, aP=aP,
                                          bcs=(bc1,bc2))
 
-stokessolver = LinearVariationalSolver(stokesproblem, up,
+stokessolver = LinearVariationalSolver(stokesproblem,
                                        nullspace=nullspace,
                                        solver_parameters=parameters)
 
